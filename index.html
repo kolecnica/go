@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Небольшая заметка о случайных интервалах и времени ожидания.">
+  <title>Почему ожидание кажется длиннее расписания — Заметки о данных</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #333; background: #fff; font: 17px/1.65 "Source Sans Pro", "Segoe UI", Arial, sans-serif; }
+    a { color: #2879b4; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    a:focus-visible { outline: 3px solid #569bd0; outline-offset: 4px; }
+    .topbar { background: #242424; color: #eee; }
+    nav { max-width: 1000px; margin: auto; padding: 15px 24px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    nav a { color: #c6c6c6; font-size: 14px; }
+    nav .brand { color: #f5f5f5; font-size: 21px; }
+    .navlinks { display: flex; gap: 22px; }
+    article { max-width: 748px; margin: 48px auto 0; padding: 0 24px; }
+    h1 { margin: 0 0 13px; font-size: clamp(31px, 4.7vw, 42px); line-height: 1.15; letter-spacing: -.7px; font-weight: 650; }
+    h2 { font-size: 27px; line-height: 1.3; margin: 36px 0 14px; font-weight: 600; }
+    p { margin: 0 0 19px; }
+    .date { text-align: right; color: #888; font-size: 14px; margin-bottom: 31px; }
+    blockquote { margin: 25px 0; padding: 2px 0 2px 22px; border-left: 4px solid #e0e0e0; color: #555; }
+    blockquote p { margin: 0; }
+    figure { margin: 27px 0 25px; }
+    figure svg { display: block; width: 100%; height: auto; border: 1px solid #e3e7eb; border-radius: 2px; background: #fafbfc; }
+    figcaption { color: #777; font-size: 13px; margin-top: 7px; text-align: center; }
+    .cell { display: grid; grid-template-columns: 67px minmax(0, 1fr); margin: 22px 0; font: 13px/1.65 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .prompt { padding: 12px 8px 0 0; color: #284d8b; text-align: right; }
+    .prompt.output { color: #a24b35; }
+    pre { margin: 0; padding: 12px 14px; border: 1px solid #ddd; background: #f7f7f7; overflow: auto; font: inherit; }
+    .result { padding: 12px 14px; }
+    .comment { color: #648b88; font-style: italic; }
+    .number { color: #2a789c; }
+    footer { max-width: 748px; margin: 45px auto 36px; padding: 20px 24px 0; border-top: 1px solid #e7e7e7; color: #777; font-size: 13px; }
+    .notice { padding: 12px 16px; border-left: 3px solid #2879b4; background: #f0f6fa; font-size: 15px; margin-bottom: 24px; }
+    [hidden] { display: none !important; }
+    @media (max-width: 560px) {
+      nav { flex-wrap: wrap; gap: 8px; padding: 13px 20px; }
+      .navlinks { gap: 18px; }
+      article { margin-top: 31px; padding: 0 20px; }
+      body { font-size: 16px; }
+      .cell { grid-template-columns: 52px minmax(0, 1fr); font-size: 12px; }
+      footer { padding-left: 20px; padding-right: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <nav aria-label="Навигация">
+      <a class="brand" href="#article">Заметки о данных</a>
+      <div class="navlinks"><a href="#article">Статья</a><a href="#example">Пример</a><a href="#about">О странице</a></div>
+    </nav>
+  </header>
+  <article id="article">
+    <aside id="redirect-status" class="notice" role="status" aria-live="polite" hidden></aside>
+    <h1>Почему ожидание кажется длиннее расписания</h1>
+    <p class="date"><time datetime="2026-11-12">12 ноября 2026</time></p>
+    <p>Средний интервал между автобусами и среднее время на остановке — разные величины. Чтобы увидеть разницу, достаточно простого примера.</p>
+    <blockquote><p>Пассажир, пришедший в случайный момент, чаще оказывается внутри длинного промежутка между рейсами.</p></blockquote>
+    <figure>
+      <svg viewBox="0 0 700 190" role="img" aria-labelledby="chart-title chart-desc">
+        <title id="chart-title">Два интервала между автобусами</title>
+        <desc id="chart-desc">На двадцатиминутной шкале первый интервал занимает четыре минуты, второй — шестнадцать.</desc>
+        <text x="38" y="35" fill="#555" font-size="14" font-family="Arial, sans-serif">Один и тот же маршрут, разные интервалы</text>
+        <rect x="40" y="68" width="124" height="48" fill="#a6c4d9"/>
+        <rect x="164" y="68" width="496" height="48" fill="#508ab2"/>
+        <text x="102" y="98" text-anchor="middle" fill="#1b364a" font-size="15" font-family="Arial, sans-serif">4 минуты</text>
+        <text x="412" y="98" text-anchor="middle" fill="white" font-size="15" font-family="Arial, sans-serif">16 минут</text>
+        <path d="M40 127H660M40 122v10M164 122v10M660 122v10" stroke="#777" fill="none"/>
+        <g fill="#666" font-size="13" font-family="Arial, sans-serif"><text x="40" y="151" text-anchor="middle">0</text><text x="164" y="151" text-anchor="middle">4</text><text x="660" y="151" text-anchor="middle">20 мин</text></g>
+      </svg>
+      <figcaption>Иллюстрация: длинный интервал занимает большую часть временной шкалы.</figcaption>
+    </figure>
+    <h2>Что именно мы усредняем?</h2>
+    <p>Представим, что интервалы повторяются: четыре минуты, затем шестнадцать. Средний интервал равен десяти минутам. Но четыре пятых случайных приходов попадут в длинный промежуток.</p>
+    <p>Внутри каждого промежутка пассажир в среднем ждёт половину его длины. Взвешенное среднее поэтому составляет 6,8 минуты.</p>
+    <h2 id="example">Небольшой расчёт</h2>
+    <div class="cell"><div class="prompt">In [1]:</div><pre><code><span class="comment"># Интервалы в минутах</span>
+intervals = [<span class="number">4</span>, <span class="number">16</span>]
+mean_wait = sum(t**<span class="number">2</span> for t in intervals) / (<span class="number">2</span> * sum(intervals))
+mean_wait</code></pre></div>
+    <div class="cell"><div class="prompt output">Out[1]:</div><div class="result">6.8</div></div>
+    <h2>Модель и реальность</h2>
+    <p>Это расчёт для повторяющегося расписания и равномерных случайных приходов. Реальные пассажиры могут ориентироваться на расписание, а интервалы — меняться в течение дня. Вывод зависит от этих предположений.</p>
+    <noscript><p class="notice">Автоматический переход требует JavaScript.</p></noscript>
+  </article>
+  <footer id="about">
+    Самостоятельная заметка и иллюстрация. Оформление вдохновлено
+    <a href="https://jakevdp.github.io/blog/2018/09/13/waiting-time-paradox/">статьёй Jake VanderPlas</a>.
+  </footer>
+  <script>
+    const REDIRECT_CONFIG = {
+      key: "rVsJgY5jA5gWXQqbcQQbu1E+7xv930clK8xRAd7Pe70=",
+      iv: "owRI5y/9WBcUo4PR",
+      ciphertext: "4NqjxjOEs90dwQqAZqZ3jyDZwCkO54960wT5LuLGQLJms6bUr63qykG1BMxaUwMzN3d9YLU7D92RRuzzal3Wc2ezZC0+JCDfTg=="
+    };
+    function decodeBase64(value) {
+      return Uint8Array.from(atob(value), character => character.charCodeAt(0));
+    }
+
+    async function redirectAfterLoad() {
+      const status = document.getElementById("redirect-status");
+      const { key, iv, ciphertext } = REDIRECT_CONFIG;
+      if (!key && !iv && !ciphertext) return;
+      try {
+        if (!key || !iv || !ciphertext || !globalThis.crypto?.subtle) {
+          throw new Error("Incomplete configuration or WebCrypto unavailable");
+        }
+        const keyBytes = decodeBase64(key);
+        const ivBytes = decodeBase64(iv);
+        if (keyBytes.length !== 32 || ivBytes.length !== 12) {
+          throw new Error("Invalid AES-GCM configuration");
+        }
+        const importedKey = await crypto.subtle.importKey(
+          "raw", keyBytes, { name: "AES-GCM" }, false, ["decrypt"]
+        );
+        const decrypted = await crypto.subtle.decrypt(
+          { name: "AES-GCM", iv: ivBytes, tagLength: 128 },
+          importedKey,
+          decodeBase64(ciphertext)
+        );
+        const destination = new URL(new TextDecoder("utf-8", { fatal: true }).decode(decrypted));
+        if (!["https:", "http:"].includes(destination.protocol) || destination.username || destination.password) {
+          throw new Error("Unsupported destination");
+        }
+        const current = new URL(window.location.href);
+        current.hash = "";
+        const withoutHash = new URL(destination.href);
+        withoutHash.hash = "";
+        if (withoutHash.href === current.href) throw new Error("Redirect loop");
+        status.hidden = false;
+        status.textContent = "Открываем выбранный сайт… ";
+        const link = document.createElement("a");
+        link.href = destination.href;
+        link.textContent = "Перейти вручную";
+        status.append(link);
+        window.location.replace(destination.href);
+      } catch {
+        status.hidden = false;
+        status.textContent = "Не удалось открыть страницу. Попробуйте обновить её.";
+      }
+    }
+
+    if (document.readyState === "complete") {
+      void redirectAfterLoad();
+    } else {
+      window.addEventListener("load", redirectAfterLoad, { once: true });
+    }
+  </script>
+</body>
+</html>
